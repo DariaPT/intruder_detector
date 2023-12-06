@@ -8,7 +8,9 @@ from matplotlib import cm
 FILE_NAME = "video1.mp4"
 WIDTH = 1280
 HEIGHT = 720
-MIN_SIZE = 5000
+MIN_SIZE = 9000
+
+alarmCounter = 0
 
 class CustRectang:
     def __init__(self, x, y, x1, y1):
@@ -131,13 +133,15 @@ while vidCap.isOpened():
         
         isIntersected = is_overlap(a, b)
 
+        # отрисовка любого движения
         cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2) # получение прямоугольника из точек кортежа
 
         if isIntersected:
             cv2.putText(frame1, "ALARM!", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3, cv2.LINE_AA) # вставляем текст
-            cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 60, 255), 2) # получение прямоугольника из точек кортежа
+            # отрисовка Только тревожного движения
+            cv2.rectangle(frame1, (x, y), (x+w, y+h), (60, 60, 255), 2) # получение прямоугольника из точек кортежа
 
-    # cv2.drawContours(frame1, сontours, -1, (0, 255, 0), 2) # также можно было просто нарисовать контур объекта
+    # cv2.drawContours(frame1, сontours, -1, (0, 255, 0), 2)
     cv2.rectangle(frame1, (xStart, yStart), (xEnd, yEnd), (0, 0, 255), 2)
     cv2.imshow("frame1", frame1)
     frame1 = frame2  #
