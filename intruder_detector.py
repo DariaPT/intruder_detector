@@ -1,12 +1,27 @@
 import cv2
+import tkinter
+from PIL import Image, ImageTk
 
 FILE_NAME = "video1.mp4"
+
 
 vidCap = cv2.VideoCapture(f'Video/{FILE_NAME}')
 
 vidCap.set(3,1280)
 vidCap.set(4,700)
 
+canvas = tkinter.Canvas(width=512, height=512, cursor="cross")
+canvas.pack(side="top", fill="both", expand=True)
+canvas.bind("<ButtonPress-1>", self.on_button_press)
+canvas.bind("<B1-Motion>", self.on_move_press)
+canvas.bind("<ButtonRelease-1>", self.on_button_release)
+
+rect = None
+
+start_x = None
+start_y = None
+
+_draw_image()
 
 ret, frame1 = vidCap.read()
 ret, frame2 = vidCap.read()
