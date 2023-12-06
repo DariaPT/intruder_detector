@@ -5,11 +5,13 @@ import numpy as np
 from matplotlib import cm
 
 FILE_NAME = "video1.mp4"
+WIDTH = 1280
+HEIGHT = 720
 
 vidCap = cv2.VideoCapture(f'Video/{FILE_NAME}')
 
-vidCap.set(3,1280)
-vidCap.set(4,700)
+vidCap.set(3,WIDTH)
+vidCap.set(4,HEIGHT)
 
 ret, frame1 = vidCap.read()
 ret, frame2 = vidCap.read()
@@ -19,7 +21,7 @@ class ExampleApp(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.x = self.y = 0
-        self.canvas = tk.Canvas(self, width=512, height=512, cursor="cross")
+        self.canvas = tk.Canvas(self, width=WIDTH, height=HEIGHT, cursor="cross")
         self.canvas.pack(side="top", fill="both", expand=True)
         self.canvas.bind("<ButtonPress-1>", self.on_button_press)
         self.canvas.bind("<B1-Motion>", self.on_move_press)
@@ -75,7 +77,6 @@ yEnd = 0
 app = ExampleApp()
 app.mainloop()
 
-
 ########################
 
 while vidCap.isOpened():
@@ -106,7 +107,7 @@ while vidCap.isOpened():
         cv2.putText(frame1, "Status: {}".format("Dvigenie"), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3, cv2.LINE_AA) # вставляем текст
     
     # cv2.drawContours(frame1, сontours, -1, (0, 255, 0), 2) # также можно было просто нарисовать контур объекта
-    
+    cv2.rectangle(frame1, (xStart, yStart), (xEnd, yEnd), (0, 0, 255), 2)
     cv2.imshow("frame1", frame1)
     frame1 = frame2  #
     ret, frame2 = vidCap.read() #  
