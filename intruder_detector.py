@@ -4,9 +4,26 @@ from PIL import Image, ImageTk
 import numpy as np
 from matplotlib import cm
 
+# FILE_NAME = "HomeThieves.mp4"
 FILE_NAME = "video1.mp4"
 WIDTH = 1280
 HEIGHT = 720
+MIN_SIZE = 5000
+
+class CustRectang:
+    def __init__(self, x, y, x1, y1):
+        self.x = x
+        self.y = y
+        self.x1 = x1
+        self.y1 = y1
+
+def is_overlap(a, b):    
+    s1 = (a.x>=b.x and a.x<=b.x1 ) or ( a.x1>=b.x and a.x1<=b.x1 )
+    s2 = ( a.y>=b.y and a.y<=b.y1 )or( a.y1>=b.y and a.y1<=b.y1 )
+    s3 = ( b.x>=a.x and b.x<=a.x1 )or( b.x1>=a.x and b.x1<=a.x1 )
+    s4 = ( b.y>=a.y and b.y<=a.y1 )or( b.y1>=a.y and b.y1<=a.y1 )
+
+    return ((s1 and s2) or (s3 and s4)) or ((s1 and s4) or (s3 and s2))
 
 vidCap = cv2.VideoCapture(f'Video/{FILE_NAME}')
 
@@ -67,6 +84,8 @@ class ExampleApp(tk.Tk):
         yStart = self.start_y
         xEnd = event.x
         yEnd = event.y
+
+        app.destroy()
         app.quit()
 
 xStart = 0
@@ -77,22 +96,25 @@ yEnd = 0
 app = ExampleApp()
 app.mainloop()
 
+
 ########################
 
 while vidCap.isOpened():
+    if frame1 is None or frame2 is None:
+        break
+
     diff = cv2.absdiff(frame1, frame2)
 
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
     
     blur = cv2.GaussianBlur(gray, (5, 5), 0)  # фильтрация лишних контуров
 
-    _, thresh = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY) # метод для выделения кромки объекта белым цветом
+    _, thresh = cv2.threshold(blur, 10, 255, cv2.THRESH_BINARY) # метод для выделения кромки объекта белым цветом
  
     dilated = cv2.dilate(thresh, None, iterations = 3) # данный метод противоположен методу erosion(), т.е. эрозии объекта, и расширяет выделенную на предыдущем этапе область
     
     # CHAIN_APPROX_SIMPLE
     сontours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE) # нахождение массива контурных точек
-    
     
     for contour in сontours:
         (x, y, w, h) = cv2.boundingRect(contour) # преобразование массива из предыдущего этапа в кортеж из четырех координат
@@ -100,12 +122,21 @@ while vidCap.isOpened():
         # метод contourArea() по заданным contour точкам, здесь кортежу, вычисляет площадь зафиксированного объекта в каждый момент времени, это можно проверить
         print(cv2.contourArea(contour))
     
-        if cv2.contourArea(contour) < 700: # условие при котором площадь выделенного объекта меньше 700 px
+        if cv2.contourArea(contour) < MIN_SIZE: # условие при котором площадь выделенного объекта меньше 700 px
             continue
 
+        # isInterstected = is_intersect((xStart, yStart, xEnd, yEnd), (x, y, w, h))
+        a = CustRectang(xStart, yStart, xEnd, yEnd)
+        b = CustRectang(x, y, x+w, y+h)
+        
+        isIntersected = is_overlap(a, b)
+
         cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 2) # получение прямоугольника из точек кортежа
-        cv2.putText(frame1, "Status: {}".format("Dvigenie"), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3, cv2.LINE_AA) # вставляем текст
-    
+
+        if isIntersected:
+            cv2.putText(frame1, "ALARM!", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3, cv2.LINE_AA) # вставляем текст
+            cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 60, 255), 2) # получение прямоугольника из точек кортежа
+
     # cv2.drawContours(frame1, сontours, -1, (0, 255, 0), 2) # также можно было просто нарисовать контур объекта
     cv2.rectangle(frame1, (xStart, yStart), (xEnd, yEnd), (0, 0, 255), 2)
     cv2.imshow("frame1", frame1)
